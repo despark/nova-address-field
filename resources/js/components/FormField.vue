@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            <div class="google-map w-full" :id="mapName" v-show="field.withMap"></div>
+            <div class="google-map w-full" ref="map" v-show="field.withMap"></div>
 
             <p v-if="hasError" class="my-2 text-danger">
                 {{ firstError }}
@@ -86,13 +86,17 @@ export default {
 
     data: function () {
         return {
-            mapName: this.name + "-map",
             mapOptions: {
                 center: new google.maps.LatLng(40.730610, -98.935242),
                 zoom: 5
             },
             address: '',
-            addressData: {latitude: this.field.lat || '', longitude: this.field.lng || '', address: ''},
+            addressData: {
+              latitude: this.field.lat || '',
+              longitude: this.field.lng || '',
+              address: '',
+              zoom: this.field.zoom || 5
+            },
             map: null,
             marker: null,
             geocoder: new google.maps.Geocoder,
@@ -129,12 +133,12 @@ export default {
         },
 
         initMap() {
-            const element = document.getElementById(this.mapName);
+            const element = this.$refs.map;
             let center =  new google.maps.LatLng(this.addressData.latitude, this.addressData.longitude)
 
             // setup map options
             const options = {
-                zoom: this.field.zoom || 5,
+                zoom: this.addressData.zoom || this.field.zoom || 5,
                 center: center
             };
             // initialize the map
@@ -243,6 +247,7 @@ export default {
     watch: {
         'addressData' : {
             handler: function (newAddressData) {
+                newAddressData.zoom = this.map.getZoom()
                 this.value = JSON.stringify(newAddressData)
                 this.mapOptions.center = new google.maps.LatLng(newAddressData.latitude, newAddressData.longitude)
             },
